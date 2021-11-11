@@ -136,6 +136,17 @@ void loop() {
       }
       break;
 
+  
+      case SET_PIXEL_CYCLE:
+      {
+        uint32_t ms_per = message.data[0];
+        uint16_t cycle_to_pixel = message.data[1];
+
+        strip.set_cycle_to_pixel(ms_per,cycle_to_pixel );
+
+
+      }
+
     }
   }
 
