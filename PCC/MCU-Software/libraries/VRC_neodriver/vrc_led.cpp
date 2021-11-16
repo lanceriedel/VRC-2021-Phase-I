@@ -118,7 +118,7 @@ void VRCLED::run(void)
         }
     }
     //see if we need to update the strip color
-    if (current_cycle==0 && (millis() - last_strip_show > 10) && needs_color_update)
+    if (current_cycle==0 && (millis() - last_strip_show > 30) && needs_color_update)
     {
         show();
         needs_color_update = false;
