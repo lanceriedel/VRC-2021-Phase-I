@@ -46,11 +46,34 @@ void VRCLED::set_base_color_target(uint8_t white, uint8_t red, uint8_t green, ui
 
 void VRCLED::set_strip_color()
 {
+
+    uint32_t r = 0;
+
+    //format the color
+    r = 255 << 24;
+    r |= 255 << 16;
+    r |= 0 << 8;
+    r |= 0;
+
+    //format color red
+    uint32_t g = 0;
+
+    //format the color
+    g = 255 << 24;
+    g |= 0 << 16;
+    g |= 255 << 8;
+    g |= 0;
+
     //update the memory matrix for the strip color
     uint16_t i=0;
     for(i=0; i<numPixels(); i++) 
     {
-        setPixelColor(i, current_color);
+        if (target_cycle_pixel_recip==i)
+            setPixelColor(i,r);
+        else if (target_cycle_pixel==i)
+            setPixelColor(i,g);
+        else
+            setPixelColor(i, current_color);
     }
     
     needs_color_update = true;
@@ -58,12 +81,21 @@ void VRCLED::set_strip_color()
 
 void VRCLED::set_cycle_to_pixel(uint32_t ms_per, uint16_t target_pixel)
 {
-    current_cycle = numPixels()/4;
+    current_cycle =0; // numPixels()/4;
+    if (target_pixel > numPixels()) {
+            target_cycle_pixel_recip = numPixels()+1;
+            target_cycle_pixel_recip = numPixels()+1;
+            return;
+    }
+
     target_cycle_pixel = target_pixel;
+    target_cycle_pixel_recip = target_pixel - numPixels()/2;
+    if (target_cycle_pixel_recip<0) target_cycle_pixel_recip + numPixels();
     ms_per_cycle = ms_per;
+    needs_color_update = true;
 }
 
-void VRCLED::cycle_pixel()
+void VRCLED::cycle_pixel_old()
 {
     int32_t highlightCW = target_cycle_pixel - current_cycle;
     int32_t highlightCCW = target_cycle_pixel + current_cycle;
@@ -109,8 +141,47 @@ void VRCLED::cycle_pixel()
         }
     }
     setPixelColor(target_cycle_pixel,g);
-    setPixelColor(target_cycle_pixel/2,r);
+    setPixelColor(target_cycle_pixel_recip,r);
 
+
+    current_cycle--;
+    
+}
+
+void VRCLED::set_pointing_pixels() {
+    if (target_cycle_pixel > numPixels()) return;
+    //format color red
+    uint32_t r = 0;
+
+    //format the color
+    r = 255 << 24;
+    r |= 255 << 16;
+    r |= 0 << 8;
+    r |= 0;
+
+    //format color red
+    uint32_t g = 0;
+
+    //format the color
+    g = 255 << 24;
+    g |= 0 << 16;
+    g |= 255 << 8;
+    g |= 0;
+
+    setPixelColor(target_cycle_pixel,g);
+    setPixelColor(target_cycle_pixel_recip,r);
+}
+
+void VRCLED::cycle_pixel()
+{
+    
+    uint16_t i=0;
+    for(i=0; i<numPixels(); i++) 
+    {
+        
+        setPixelColor(i, current_color);
+    }
+    set_pointing_pixels();
 
     current_cycle--;
     
@@ -141,7 +212,7 @@ void VRCLED::run(void)
         }
     }
     //see if we need to update the strip color
-    if (current_cycle==0 && (millis() - last_strip_show > 30) && needs_color_update)
+    if ((millis() - last_strip_show > 10) && needs_color_update)
     {
         show();
         needs_color_update = false;
@@ -150,8 +221,8 @@ void VRCLED::run(void)
 
     if (current_cycle > 0 &&( (millis() - last_cycle_update > ms_per_cycle)))
     {
-        cycle_pixel();
-        show();
+        //cycle_pixel();
+        //show();
         last_cycle_update = millis();
     }
 
