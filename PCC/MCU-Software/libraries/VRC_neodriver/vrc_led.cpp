@@ -58,7 +58,7 @@ void VRCLED::set_strip_color()
 
 void VRCLED::set_cycle_to_pixel(uint32_t ms_per, uint16_t target_pixel)
 {
-    current_cycle = numPixels()/2;
+    current_cycle = numPixels()/4;
     target_cycle_pixel = target_pixel;
     ms_per_cycle = ms_per;
 }
