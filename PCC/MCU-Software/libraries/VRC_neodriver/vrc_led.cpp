@@ -77,6 +77,18 @@ void VRCLED::cycle_pixel()
     c |= 255 << 16;
     c |= 255 << 8;
     c |= 255;
+
+    //format color red
+    uint32_t r = 0;
+
+    //format the color
+    r = 255 << 24;
+    r |= 255 << 16;
+    r |= 0 << 8;
+    r |= 0;
+
+    //record the color
+    //temp_color = c;
     uint16_t i=0;
     for(i=0; i<numPixels(); i++) 
     {
@@ -87,7 +99,7 @@ void VRCLED::cycle_pixel()
             setPixelColor(i,c);
         }
     }
-    setPixelColor(target_cycle_pixel,c);
+    setPixelColor(target_cycle_pixel,r);
 
     current_cycle--;
     
