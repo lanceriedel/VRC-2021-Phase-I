@@ -2,7 +2,15 @@
 
 VRCLED::VRCLED(uint8_t pin, uint8_t num_pixels,neoPixelType t) : Adafruit_NeoPixel(num_pixels,pin,t)
 {
-    current_color = 255 << 24;
+    uint32_t c = 0;
+
+    //format the color
+    c = 255 << 24;
+    c |= 0 << 16;
+    c |= 0 << 8;
+    c |= 0;
+    //record the color
+    current_color = c;
 }
 
 void VRCLED::show_temp_color(uint32_t seconds)
@@ -84,15 +92,18 @@ void VRCLED::set_cycle_to_pixel(uint32_t ms_per, uint16_t target_pixel)
     current_cycle =0; // numPixels()/4;
     if (target_pixel > numPixels()) {
             target_cycle_pixel_recip = numPixels()+1;
-            target_cycle_pixel_recip = numPixels()+1;
+            target_cycle_pixel = numPixels()+1;
+            set_strip_color();
+
             return;
     }
 
     target_cycle_pixel = target_pixel;
     target_cycle_pixel_recip = target_pixel - numPixels()/2;
-    if (target_cycle_pixel_recip<0) target_cycle_pixel_recip + numPixels();
-    ms_per_cycle = ms_per;
-    needs_color_update = true;
+    if (target_cycle_pixel_recip<0) 
+        target_cycle_pixel_recip = target_cycle_pixel_recip + numPixels();
+    set_strip_color();
+
 }
 
 void VRCLED::cycle_pixel_old()
@@ -206,9 +217,9 @@ void VRCLED::run(void)
         if(current_color != base_color)
         {
             current_color = base_color;
-            if (current_cycle==0) {
-               set_strip_color();
-            }
+            //if (current_cycle==0) {
+            set_strip_color();
+            //}
         }
     }
     //see if we need to update the strip color
@@ -219,12 +230,12 @@ void VRCLED::run(void)
         last_strip_show = millis();
     }
 
-    if (current_cycle > 0 &&( (millis() - last_cycle_update > ms_per_cycle)))
-    {
+   // if (current_cycle > 0 &&( (millis() - last_cycle_update > ms_per_cycle)))
+    //{
         //cycle_pixel();
         //show();
-        last_cycle_update = millis();
-    }
+     //   last_cycle_update = millis();
+   // }
 
  
 }
