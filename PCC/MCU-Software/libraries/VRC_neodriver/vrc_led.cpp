@@ -76,10 +76,20 @@ void VRCLED::set_strip_color()
     uint16_t i=0;
     for(i=0; i<numPixels(); i++) 
     {
-        if (target_cycle_pixel_recip==i)
+        uint16_t ni = i+1;
+        uint16_t pi = i-1;
+        if (pi<0) pi = pi + numPixels();
+        if (ni>(numPixels()-1)) ni = ni-numPixels();
+        if (target_cycle_pixel_recip==i) {
             setPixelColor(i,r);
-        else if (target_cycle_pixel==i)
+            setPixelColor(pi,r);
+            setPixelColor(ni,r); 
+        }
+        else if (target_cycle_pixel==i) {
             setPixelColor(i,g);
+            setPixelColor(pi,g);
+            setPixelColor(ni,g); 
+        }
         else
             setPixelColor(i, current_color);
     }
