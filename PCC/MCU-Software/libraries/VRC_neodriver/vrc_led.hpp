@@ -12,6 +12,7 @@ class VRCLED : public Adafruit_NeoPixel
         void set_strip_color(void);
         void set_cycle_to_pixel(uint32_t ms_per, uint16_t target_pixel);
         void cycle_pixel();
+        void trigger(uint32_t how_long, uint8_t which_switch);
 
         void run(void);
         //uint32_t get_strip_color(void);
@@ -37,5 +38,8 @@ class VRCLED : public Adafruit_NeoPixel
 
         bool needs_color_update = false;
         bool temp_running = false;
+
+        unsigned long light_on = 0;
+        
         
 };
