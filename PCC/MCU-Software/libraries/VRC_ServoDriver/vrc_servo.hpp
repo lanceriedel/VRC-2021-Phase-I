@@ -19,6 +19,9 @@ class VRCServo : public Adafruit_PWMServoDriver
     void set_servo_max();
     uint8_t check_controller(void);
     void trigger(uint32_t how_long, uint8_t which_switch);
+    void onswitch(uint8_t which_switch_);
+    void offswitch(uint8_t which_switch_);
+    void writeToSwitch(uint8_t num, uint8_t val);
 
     void run(void);
 

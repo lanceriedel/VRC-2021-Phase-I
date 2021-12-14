@@ -158,6 +158,18 @@ void loop() {
         servos.trigger(how_long, which_switch);
       }
 
+      case SET_SWITCH_ON:
+      {
+         uint8_t which_switch = message.data[0];
+        servos.onswitch(which_switch);
+      }
+
+      case SET_SWITCH_OFF:
+      {
+         uint8_t which_switch = message.data[0];
+        servos.offswitch(which_switch);
+      }
+
 
     }
   }
