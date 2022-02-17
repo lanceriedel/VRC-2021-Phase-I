@@ -31,6 +31,8 @@ class VRCServo : public Adafruit_PWMServoDriver
     uint16_t servo_max;
     unsigned long how_long = 0;
     unsigned long timestamp_trigger = 0;
+    unsigned long timestamp_last = 0;
+
     uint8_t which_switch = 32;
 
 };

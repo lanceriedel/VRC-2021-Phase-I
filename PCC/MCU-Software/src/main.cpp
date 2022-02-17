@@ -18,6 +18,7 @@ VRCSerialParser serial(Serial,q);
 ///////////////// N E O - P I X E L S /////////////////////////
 #define NEO_PIN 5
 #define PWR_PIN 10
+#define LASER_PIN A4
 
 #define NUM_PIXELS 30
 
@@ -34,6 +35,9 @@ void setup() {
   // put your setup code here, to run once:
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(PWR_PIN,OUTPUT);
+  pinMode(LASER_PIN,OUTPUT);
+
+
   digitalWrite(PWR_PIN,HIGH);
 
   //////////// N E O - P I X E L  S E T U P ////////////////////
@@ -132,6 +136,16 @@ void loop() {
         //digitalWrite(RST_PIN,LOW);
       }
       break;
+      case SET_LASER_ON:
+      {
+        digitalWrite(LASER_PIN,HIGH);
+      }
+      break;
+      case SET_LASER_OFF:
+      {
+        digitalWrite(LASER_PIN,LOW);
+      }
+      break;
       case CHECK_SERVO_CONTROLLER:
       {
         //Serial.printf("Checking controller...\n");
@@ -150,6 +164,7 @@ void loop() {
 
 
       }
+      break; 
 
       case SET_TRIGGER_SWITCH:
       {
@@ -157,19 +172,21 @@ void loop() {
         uint32_t how_long = message.data[1];
         servos.trigger(how_long, which_switch);
       }
+      break;
 
       case SET_SWITCH_ON:
       {
          uint8_t which_switch = message.data[0];
         servos.onswitch(which_switch);
       }
+      break;
 
       case SET_SWITCH_OFF:
       {
          uint8_t which_switch = message.data[0];
         servos.offswitch(which_switch);
       }
-
+      break;
 
     }
   }
