@@ -62,6 +62,16 @@ void loop() {
 
   serial.poll(); 
 
+  //if image from thermal available -- create a message for it
+  uint8_t thermal_reading[512];
+  thermal_reading[0]=1;thermal_reading[1]=2;thermal_reading[2]=3;thermal_reading[3]=4;thermal_reading[4]=5;
+  uint8_t data_send_bytes[2048] = {0};
+  serial.construct_payload(data_send_bytes, SEND_THERMAL_READING, 512, thermal_reading);
+  packet_send_t packet_to_send;
+  packet_to_send.command=SEND_THERMAL_READING;
+  memcpy(packet_to_send.data,(uint8_t*)data_send_bytes,2048);
+  serial.set_command(&packet_to_send);
+
   if(serial.available > 0)
   {
     packet_t message;
