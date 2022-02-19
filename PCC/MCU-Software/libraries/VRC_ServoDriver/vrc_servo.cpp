@@ -5,6 +5,9 @@ VRCServo::VRCServo() : Adafruit_PWMServoDriver()
     servo_min = SERVOMIN;
     servo_max = SERVOMAX;
     pinMode(5, OUTPUT);
+    pinMode(6, OUTPUT);
+    pinMode(9, OUTPUT);
+
     digitalWrite(5, HIGH);
 
 }
@@ -59,6 +62,9 @@ void VRCServo::offswitch(uint8_t which_switch_) {
 void VRCServo::run(void)
 {
     //check if we need to close trigger
+    uint32_t timesince_last = millis() - timestamp_last;
+ 
+
     if (timestamp_trigger>0) {
         uint32_t timesince = millis() - timestamp_trigger;
         if (timesince>how_long) {
