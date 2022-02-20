@@ -216,13 +216,10 @@ cmd_result VRCSerialParser::read_messages() {
 
 cmd_result VRCSerialParser::set_command(packet_send_t* msg) {
   //we have fully formed messages waiting, service them.
-    Serial.println("set Command");
 
     if (q_send.getCount()<10)
     {
-        Serial.println("Added Command");
         bool suc = q_send.push(msg);
-        Serial.print("set_command:[");  Serial.print(suc); Serial.print("] "); Serial.println(q_send.getCount());
 
         available_send++;
         return SUCCESS;
