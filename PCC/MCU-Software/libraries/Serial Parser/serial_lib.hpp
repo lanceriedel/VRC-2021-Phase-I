@@ -62,7 +62,7 @@ static char* incoming_preamble = "$P<";//towards jetson
 class VRCSerialParser 
 {
   public:
-    VRCSerialParser(Adafruit_USBD_CDC port, cppQueue queue_q);
+    VRCSerialParser(Adafruit_USBD_CDC port, cppQueue queue_q, cppQueue q_send_q);
     void poll(void);
     uart_states get_state(void);
     cmd_result get_command(packet_t* msg);

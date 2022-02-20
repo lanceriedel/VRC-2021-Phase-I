@@ -9,10 +9,14 @@
 //////////////// S E R I A L  I N T E R F A C E ///////////////
 uint16_t queue_len = 10;
 uint16_t entry_size = sizeof(packet_t);
+uint16_t entry_size_send = sizeof(packet_send_t);
+
 
 cppQueue q(entry_size,queue_len,FIFO);
+cppQueue q_send(entry_size_send,queue_len,FIFO);
 
-VRCSerialParser serial(Serial,q);
+
+VRCSerialParser serial(Serial,q,q_send);
 ///////////////////////////////////////////////////////////////
 
 ///////////////// N E O - P I X E L S /////////////////////////
@@ -63,6 +67,8 @@ unsigned long light_on = 0;
 
 void loop() {
   // put your main code here, to run repeatedly:
+    
+
 
   serial.poll(); 
 
@@ -75,6 +81,7 @@ void loop() {
   packet_to_send.command=SEND_THERMAL_READING;
   memcpy(packet_to_send.data,(uint8_t*)data_send_bytes,2048);
   serial.set_command(&packet_to_send);
+
 
   if(serial.available > 0)
   {

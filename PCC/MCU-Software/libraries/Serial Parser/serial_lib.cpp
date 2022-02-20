@@ -1,21 +1,28 @@
 #include "serial_lib.hpp"
 
-VRCSerialParser::VRCSerialParser(Adafruit_USBD_CDC port, cppQueue queue_q)
+VRCSerialParser::VRCSerialParser(Adafruit_USBD_CDC port, cppQueue queue_q, cppQueue q_send_q)
 {
     serial_bus = port;
 
     serial_bus.begin(115200);
 
     q = queue_q;
+    q_send = q_send_q;
 }
 
 void VRCSerialParser::poll(void)
 {
+    Serial.println("poll:");
+    send_messages();
+
+
     if (serial_bus.available())
     { 
         //See if there are any messages to send and send them first
-        send_messages();
         read_messages();
+    } else {
+                Serial.println("Serial bus not available");
+
     }
 
         
@@ -24,9 +31,12 @@ void VRCSerialParser::poll(void)
 
 cmd_result VRCSerialParser::send_messages()
 {
+
+
  //we have fully formed messages waiting, service them.
-    if (q_send.getCount())
+    if (q_send.getCount()>0)
     {
+
         packet_send_t packet; 
         q_send.pop(&packet);
         char msg[2048];
@@ -35,14 +45,19 @@ cmd_result VRCSerialParser::send_messages()
         available_send--;
 
         memcpy(&msg,packet.data,2048);
-        size_t written = serial_bus.write(msg);
-        if (written==sizeof(msg))
+        size_t written = serial_bus.write(msg, 2048);
+
+        if (written==sizeof(msg)) {
+
             return SUCCESS;
+        }
         else    
             return DROPPED; 
     }
     else
     {
+        Serial.println("q empty");
+
         return QUEUE_EMPTY;
     }
 }
@@ -201,9 +216,14 @@ cmd_result VRCSerialParser::read_messages() {
 
 cmd_result VRCSerialParser::set_command(packet_send_t* msg) {
   //we have fully formed messages waiting, service them.
+    Serial.println("set Command");
+
     if (q_send.getCount()<10)
     {
-        q_send.push(msg);
+        Serial.println("Added Command");
+        bool suc = q_send.push(msg);
+        Serial.print("set_command:[");  Serial.print(suc); Serial.print("] "); Serial.println(q_send.getCount());
+
         available_send++;
         return SUCCESS;
     }
