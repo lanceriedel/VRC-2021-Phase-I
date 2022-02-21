@@ -12,16 +12,13 @@ VRCSerialParser::VRCSerialParser(Adafruit_USBD_CDC port, cppQueue queue_q, cppQu
 
 void VRCSerialParser::poll(void)
 {
-    Serial.println("poll:");
     send_messages();
-
 
     if (serial_bus.available())
     { 
         //See if there are any messages to send and send them first
         read_messages();
     } else {
-                Serial.println("Serial bus not available");
 
     }
 
@@ -56,7 +53,6 @@ cmd_result VRCSerialParser::send_messages()
     }
     else
     {
-        Serial.println("q empty");
 
         return QUEUE_EMPTY;
     }
