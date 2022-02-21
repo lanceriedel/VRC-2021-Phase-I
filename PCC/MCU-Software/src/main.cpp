@@ -160,7 +160,7 @@ void loop() {
         //if image from thermal available -- create a message for it
         uint8_t thermal_reading[64];
         for (int i=0;i<64;i++) {
-            thermal_reading[i] =  rand()%((255) + 1);;
+            thermal_reading[i] =  rand()%((250) + 1)+1;
         }
 
         uint8_t data_send_bytes[2048] = {0};
