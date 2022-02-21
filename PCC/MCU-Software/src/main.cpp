@@ -158,10 +158,13 @@ void loop() {
       case REQUEST_THERMAL_READING:
       {
         //if image from thermal available -- create a message for it
-        uint8_t thermal_reading[512];
-        for (int i=0;i<512;i++) thermal_reading[i] = i;
+        uint8_t thermal_reading[64];
+        for (int i=0;i<64;i++) {
+            thermal_reading[i] =  rand()%((255) + 1);;
+        }
+
         uint8_t data_send_bytes[2048] = {0};
-        serial.construct_payload(data_send_bytes, SEND_THERMAL_READING, 512, thermal_reading);
+        serial.construct_payload(data_send_bytes, SEND_THERMAL_READING, 64, thermal_reading);
         packet_send_t packet_to_send;
         packet_to_send.command=SEND_THERMAL_READING;
         memcpy(packet_to_send.data,(uint8_t*)data_send_bytes,2048);
