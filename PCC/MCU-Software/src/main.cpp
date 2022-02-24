@@ -1,9 +1,12 @@
 #include <Arduino.h>
 #include <Adafruit_PWMServoDriver.h>
+#include <SPI.h>
+#include <Adafruit_AMG88xx.h>
 
 #include "serial_lib.hpp"
 #include "vrc_led.hpp"
 #include "vrc_servo.hpp"
+
 
 
 //////////////// S E R I A L  I N T E R F A C E ///////////////
@@ -28,6 +31,7 @@ VRCSerialParser serial(Serial,q,q_send);
 
 VRCLED strip(NEO_PIN,NUM_PIXELS,NEO_GRB);
 VRCLED onboard(8,2,NEO_GRB);
+Adafruit_AMG88xx amg;
 
 ///////////////////////////////////////////////////////////////
 
@@ -59,6 +63,13 @@ void setup() {
   servos.setOscillatorFrequency(27000000);
   servos.setPWMFreq(SERVO_FREQ);
   //////////////////////////////////////////////////////////////
+
+  //////////// THERMAL CAMERA SETUP ////////////////
+  bool status = amg.begin();
+  if (!status) {
+      Serial.println("Could not find a valid AMG88xx sensor, check wiring!");
+      while (1);
+  }
 
   Serial.println("init");
 }
@@ -159,8 +170,10 @@ void loop() {
       {
         //if image from thermal available -- create a message for it
         uint8_t thermal_reading[64];
+        float pixels[AMG88xx_PIXEL_ARRAY_SIZE];
+        amg.readPixels(pixels);
         for (int i=0;i<64;i++) {
-            thermal_reading[i] =  rand()%((250) + 1)+1;
+            thermal_reading[i] =  pixels[i];
         }
 
         uint8_t data_send_bytes[2048] = {0};
