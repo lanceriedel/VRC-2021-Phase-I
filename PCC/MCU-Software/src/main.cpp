@@ -174,6 +174,11 @@ void loop() {
         amg.readPixels(pixels);
         for (int i=0;i<64;i++) {
             thermal_reading[i] =  pixels[i];
+            char buf[10];
+            sprintf(buf, "%.2f", pixels[i]);
+            printf(buf);
+             Serial.printf(buf);
+
         }
 
         uint8_t data_send_bytes[2048] = {0};
