@@ -32,6 +32,7 @@ VRCSerialParser serial(Serial,q,q_send);
 VRCLED strip(NEO_PIN,NUM_PIXELS,NEO_GRB);
 VRCLED onboard(8,2,NEO_GRB);
 Adafruit_AMG88xx amg;
+bool amg_status;
 
 ///////////////////////////////////////////////////////////////
 
@@ -48,6 +49,13 @@ void setup() {
 
   digitalWrite(PWR_PIN,HIGH);
 
+  //////////// THERMAL CAMERA SETUP ////////////////
+  amg_status = amg.begin();
+  if (!amg_status) {
+      Serial.println("Could not find a valid AMG88xx sensor, check wiring!");
+  }
+
+
   //////////// N E O - P I X E L  S E T U P ////////////////////
   strip.begin();
   strip.setBrightness(255);
@@ -60,17 +68,11 @@ void setup() {
 
   ///////////// S E R V O  S E T U P ///////////////////////////
   servos.begin();
-  servos.setOscillatorFrequency(27000000);
+  servos.setOscillatorFrequency(25000000);
   servos.setPWMFreq(SERVO_FREQ);
   //////////////////////////////////////////////////////////////
 
-  //////////// THERMAL CAMERA SETUP ////////////////
-  bool status = amg.begin();
-  if (!status) {
-      Serial.println("Could not find a valid AMG88xx sensor, check wiring!");
-      while (1);
-  }
-
+  
   Serial.println("init");
 }
 
@@ -170,15 +172,29 @@ void loop() {
       {
         //if image from thermal available -- create a message for it
         uint8_t thermal_reading[64];
+        if (!amg_status) {
+          amg_status = amg.begin();
+       
+          if (!amg_status) {
+              Serial.println("Could not find a valid AMG88xx sensor, check wiring!");
+          }
+        }
         float pixels[AMG88xx_PIXEL_ARRAY_SIZE];
         amg.readPixels(pixels);
+        int zero_count = 0;
         for (int i=0;i<64;i++) {
+          if (amg_status) {
             thermal_reading[i] =  pixels[i];
-            char buf[10];
-            sprintf(buf, "%.2f", pixels[i]);
-            printf(buf);
-             Serial.printf(buf);
+            if (thermal_reading[i] == 0) zero_count++;
 
+          } else {
+            thermal_reading[i] = 0;
+          }
+        }
+
+        if (zero_count>2) {
+          amg_status = amg.begin();
+          return;
         }
 
         uint8_t data_send_bytes[2048] = {0};
