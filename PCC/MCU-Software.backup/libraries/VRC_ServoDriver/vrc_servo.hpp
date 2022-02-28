@@ -10,7 +10,7 @@
 class VRCServo : public Adafruit_PWMServoDriver
 {
     public:
-    VRCServo();
+    VRCServo(const uint8_t addr, TwoWire &i2c);
 
     void open_servo(uint8_t servo);
     void close_servo(uint8_t servo);
@@ -18,9 +18,21 @@ class VRCServo : public Adafruit_PWMServoDriver
     void set_servo_min();
     void set_servo_max();
     uint8_t check_controller(void);
+    void trigger(uint32_t how_long, uint8_t which_switch);
+    void onswitch(uint8_t which_switch_);
+    void offswitch(uint8_t which_switch_);
+    void writeToSwitch(uint8_t num, uint8_t val);
+
+    void run(void);
+
 
     private:
     uint16_t servo_min;
     uint16_t servo_max;
+    unsigned long how_long = 0;
+    unsigned long timestamp_trigger = 0;
+    unsigned long timestamp_last = 0;
+
+    uint8_t which_switch = 32;
 
 };

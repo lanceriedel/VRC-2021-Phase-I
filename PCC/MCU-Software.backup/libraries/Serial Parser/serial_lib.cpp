@@ -1,19 +1,65 @@
 #include "serial_lib.hpp"
 
-VRCSerialParser::VRCSerialParser(Adafruit_USBD_CDC port, cppQueue queue_q)
+VRCSerialParser::VRCSerialParser(Adafruit_USBD_CDC port, cppQueue queue_q, cppQueue q_send_q)
 {
     serial_bus = port;
 
     serial_bus.begin(115200);
 
     q = queue_q;
+    q_send = q_send_q;
 }
 
 void VRCSerialParser::poll(void)
 {
+    send_messages();
+
     if (serial_bus.available())
+    { 
+        //See if there are any messages to send and send them first
+        read_messages();
+    } else {
+
+    }
+
+        
+
+}
+
+cmd_result VRCSerialParser::send_messages()
+{
+
+
+ //we have fully formed messages waiting, service them.
+    if (q_send.getCount()>0)
     {
-        uint8_t byte = serial_bus.read();
+
+        packet_send_t packet; 
+        q_send.pop(&packet);
+        char msg[2048];
+        memset(msg,0,sizeof(msg));
+
+        available_send--;
+
+        memcpy(&msg,packet.data,2048);
+        size_t written = serial_bus.write(msg, 2048);
+
+        if (written==sizeof(msg)) {
+
+            return SUCCESS;
+        }
+        else    
+            return DROPPED; 
+    }
+    else
+    {
+
+        return QUEUE_EMPTY;
+    }
+}
+
+cmd_result VRCSerialParser::read_messages() {
+    uint8_t byte = serial_bus.read();
         last_byte_received = millis();
 
         switch (state)
@@ -150,7 +196,7 @@ void VRCSerialParser::poll(void)
             default:
             break;
         }
-    }
+    
 
     if (millis() - last_byte_received > 1000)
     {
@@ -161,7 +207,25 @@ void VRCSerialParser::poll(void)
         }
         
     }
+    return SUCCESS;
+}
 
+cmd_result VRCSerialParser::set_command(packet_send_t* msg) {
+  //we have fully formed messages waiting, service them.
+
+    if (q_send.getCount()<10)
+    {
+        bool suc = q_send.push(msg);
+
+        available_send++;
+        return SUCCESS;
+    }
+    else
+    {
+        messages_send_dropped++;
+        return DROPPED;
+    }
+    
 }
 
 cmd_result VRCSerialParser::get_command(packet_t* msg)
@@ -183,6 +247,35 @@ cmd_result VRCSerialParser::get_command(packet_t* msg)
     }
     
 }
+
+
+void VRCSerialParser::construct_payload(uint8_t* data_send_bytes_, int codecommand, int sizedata, uint8_t* data) {
+
+        //# [$][P][>][CODE][LENGTH-HI][LENGTH-LOW][DATA]    -- skipping CRC for now [CRC]
+        uint8_t* ptr;
+        ptr=data_send_bytes_;
+        
+
+        //SP>
+        int offset = 0;
+        memcpy(ptr,(uint8_t*)outgoing_preamble,3);
+        offset+=3;
+        ptr+=offset;
+
+        //write the code
+        *ptr=codecommand;
+        ptr+=1;
+
+        //Write the size
+        uint8_t LSB = sizedata;
+        uint8_t MSB = sizedata >> 8;
+        *ptr=LSB;
+        ptr+=1;
+        *ptr=MSB;
+        ptr+=1;
+        memcpy(ptr,(uint8_t*)data,sizedata);
+  
+        }
 
 uint8_t VRCSerialParser::crc8_dvb_s2(uint8_t crc, unsigned char a)
 {

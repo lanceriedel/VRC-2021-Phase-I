@@ -1,25 +1,36 @@
 #include <Arduino.h>
+#include <Adafruit_PWMServoDriver.h>
+#include <SPI.h>
+
 #include "serial_lib.hpp"
 #include "vrc_led.hpp"
 #include "vrc_servo.hpp"
 
+
+
 //////////////// S E R I A L  I N T E R F A C E ///////////////
 uint16_t queue_len = 10;
 uint16_t entry_size = sizeof(packet_t);
+uint16_t entry_size_send = sizeof(packet_send_t);
+
 
 cppQueue q(entry_size,queue_len,FIFO);
+cppQueue q_send(entry_size_send,queue_len,FIFO);
 
-VRCSerialParser serial(Serial,q);
+
+VRCSerialParser serial(Serial,q,q_send);
 ///////////////////////////////////////////////////////////////
 
 ///////////////// N E O - P I X E L S /////////////////////////
 #define NEO_PIN 5
 #define PWR_PIN 10
+#define LASER_PIN A4
 
 #define NUM_PIXELS 30
 
 VRCLED strip(NEO_PIN,NUM_PIXELS,NEO_GRB);
 VRCLED onboard(8,2,NEO_GRB);
+
 ///////////////////////////////////////////////////////////////
 
 /////////////// S E R V O S ///////////////////////////////////
@@ -30,7 +41,12 @@ void setup() {
   // put your setup code here, to run once:
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(PWR_PIN,OUTPUT);
+  pinMode(LASER_PIN,OUTPUT);
+
+
   digitalWrite(PWR_PIN,HIGH);
+
+ 
 
   //////////// N E O - P I X E L  S E T U P ////////////////////
   strip.begin();
@@ -44,10 +60,11 @@ void setup() {
 
   ///////////// S E R V O  S E T U P ///////////////////////////
   servos.begin();
-  servos.setOscillatorFrequency(27000000);
+  servos.setOscillatorFrequency(25000000);
   servos.setPWMFreq(SERVO_FREQ);
   //////////////////////////////////////////////////////////////
 
+  
   Serial.println("init");
 }
 
@@ -55,8 +72,13 @@ unsigned long light_on = 0;
 
 void loop() {
   // put your main code here, to run repeatedly:
+    
+
 
   serial.poll(); 
+
+  
+
 
   if(serial.available > 0)
   {
@@ -128,11 +150,56 @@ void loop() {
         //digitalWrite(RST_PIN,LOW);
       }
       break;
+      case SET_LASER_ON:
+      {
+        digitalWrite(LASER_PIN,HIGH);
+      }
+      break;
+      case SET_LASER_OFF:
+      {
+        digitalWrite(LASER_PIN,LOW);
+      }
+      break;
+     
       case CHECK_SERVO_CONTROLLER:
       {
         //Serial.printf("Checking controller...\n");
         uint8_t res = servos.check_controller();
         //Serial.printf("Res: %d\n",res);
+      }
+      break;
+
+  
+      case SET_PIXEL_CYCLE:
+      {
+        uint32_t ms_per = message.data[0];
+        uint16_t cycle_to_pixel = message.data[1];
+
+        strip.set_cycle_to_pixel(ms_per,cycle_to_pixel );
+
+
+      }
+      break; 
+
+      case SET_TRIGGER_SWITCH:
+      {
+         uint8_t which_switch = message.data[0];
+        uint32_t how_long = message.data[1];
+        servos.trigger(how_long, which_switch);
+      }
+      break;
+
+      case SET_SWITCH_ON:
+      {
+         uint8_t which_switch = message.data[0];
+        servos.onswitch(which_switch);
+      }
+      break;
+
+      case SET_SWITCH_OFF:
+      {
+         uint8_t which_switch = message.data[0];
+        servos.offswitch(which_switch);
       }
       break;
 
@@ -143,8 +210,10 @@ void loop() {
   {
     digitalWrite(LED_BUILTIN, LOW);
   }
+  
   strip.run();
   onboard.run();
+  servos.run();
   
 }
 
